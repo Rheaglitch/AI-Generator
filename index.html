@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UBIG.ai - Portal Alat AI Generatif</title>
+    <title>UBIG.ai - Generative AI Tools Portal</title>
     <link rel="icon" href="./assets/logo-UBIG.png" type="image/x-icon">
-    <!-- Memuat Tailwind CSS untuk styling modern dan responsif -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Menggunakan font Inter */
@@ -16,7 +15,7 @@
             transition: background-color 0.3s;
         }
         
-        /* Style kustom untuk efek hover pada card */
+        /* Style kustom untuk efek hover    pada card */
         .ai-card {
             /* Transisi lebih halus untuk semua properti transform */
             transition: transform 0.4s ease-out, box-shadow 0.4s;
@@ -56,10 +55,10 @@
             <div class="px-4">
                 <!-- Gradasi teks dari merah muda ke merah gelap -->
                 <h1 class="text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-700 md:text-6xl">
-                    UBIG.<span class="text-gray-100">AI</span> Portal
+                    UBIG.<span class="text-gray-100">ai</span> Portal
                 </h1>
                 <!-- TAGLINE BARU DENGAN PENYEBUTAN GRATIS -->
-                <p id="tagline-text" class="mt-3 text-xl font-medium text-gray-300 transition-colors duration-300">Temukan dan Gunakan Alat AI Generatif Terbaik, Sepenuhnya <span class="text-red-600 font-bold">Gratis</span>!</p>
+                <p id="tagline-text" class="mt-3 text-xl font-medium text-gray-300 transition-colors duration-300">Discover and Use the Best Generative AI Tools, Fully <span class="text-red-600 font-bold">FREE</span>!</p>
             </div>
         </header>
 
@@ -75,7 +74,7 @@
                     <input 
                         type="text" 
                         id="search-input" 
-                        placeholder="Ketik kata kunci ( contoh : video, foto, generator )..."
+                        placeholder="Type in keywords (e.g., video, photo, generator)..."
                         class="w-full py-3 pl-12 pr-4 bg-gray-700 text-gray-100 placeholder-gray-400 border border-red-500 rounded-full focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none transition duration-200 shadow-inner"
                         onkeydown="handleInputKeyDown(event)" 
                     />
@@ -90,7 +89,7 @@
                         onchange="filterTools()"
                         class="py-3 px-4 pr-10 bg-gray-700 text-gray-100 border border-red-500 rounded-full focus:ring-2 focus:ring-red-600 focus:border-red-600 appearance-none outline-none transition duration-200 shadow-inner"
                     >
-                        <option value="all">Semua Tipe</option>
+                        <option value="all">All Tipe</option>
                         <option value="visual">Foto</option>
                         <option value="text">Teks</option>
                         <option value="code">Video</option>
@@ -113,12 +112,12 @@
         <!-- Pesan Tidak Ditemukan (Mode Gelap) -->
         <div id="not-found-message" class="hidden text-center mt-10 p-8 bg-gray-800 rounded-lg border-2 border-dashed border-red-600 transition-colors duration-300">
             <!-- Teks abu-abu terang di mode gelap -->
-            <p class="text-xl text-gray-400">😢 Alat AI yang Anda cari tidak ditemukan. Coba kata kunci lain!</p>
+            <p class="text-xl text-gray-400">😢 The AI tool you are looking for was not found. Try another keyword!</p>
         </div>
 
         <!-- Footer (Mode Gelap) -->
         <footer id="main-footer" class="mt-20 py-4 text-center text-sm text-gray-400 border-t border-gray-700 transition-colors duration-300">
-            &copy; 2024 UBIG.ai Portal. Dibuat dengan semangat Generatif.
+            &copy; 2024 UBIG.ai Portal. Created with passion.
         </footer>
 
     </div>
@@ -129,10 +128,10 @@
             { 
                 name: "Action Figur AI Generator", 
                 // DESKRIPSI BARU: Wujudkan Hero Impianmu!
-                desc: "Wujudkan Hero Impianmu! Ubah teks atau fotomu menjadi figur aksi 3D super keren, siap dicetak dan dikoleksi.", 
-                url: "https://g.co/gemini/share/4fd026bf0f3a", // <-- LINK BARU DARI PERMINTAAN TERAKHIR
+                desc: "Bring your dream hero to life! Turn your text or photo into a super cool 3D action figure, ready to print and collect.", 
+                url: "https://g.co/gemini/share/8e6fb957a810", // <-- LINK BARU DARI PERMINTAAN TERAKHIR
                 // TAG 'visual' DIGANTI MENJADI 'foto'
-                tags: ["action figure", "3D", "foto", "model", "generatif"],
+                tags: ["action figure", "3D", "foto", "model", "generator"],
                 icon: "🦸", // Ikon Pahlawan Super
                 type: "visual" // Tipe internal: visual
             },
@@ -140,10 +139,10 @@
             {
                 name: "Gemini Image & Video Generator",
                 // DESKRIPSI BARU: Sihir Visual Tanpa Batas.
-                desc: "Sihir Visual Tanpa Batas. Ciptakan masterpiece gambar dan video sinematik hanya dari imajinasi dan perintah kata-kata.",
-                url: "https://g.co/gemini/share/9070b960d162", 
+                desc: " Unlimited Visuals. Create cinematic masterpieces of images and videos from just your imagination and spoken commands.",
+                url: "https://g.co/gemini/share/9266f9a7cdb4", 
                 // Tipe visual dan kode (karena video sering diklasifikasikan sebagai kode/media)
-                tags: ["gambar", "video", "media", "visual", "generatif"],
+                tags: ["gambar", "video", "media", "visual", "generator"],
                 icon: "🎥", // Ikon Film
                 type: "code" // Tipe internal: kode (dipilih untuk mewakili video)
             }
@@ -286,7 +285,7 @@
                             <!-- Tombol Aksi (Paling Bawah) -->
                             <div class="pt-2"> <!-- Tambahkan padding atas untuk jarak dari tags/divider -->
                                 <span class="inline-flex items-center justify-center w-full max-w-xs px-4 py-3 text-lg font-bold rounded-xl bg-red-600 text-white shadow-xl hover:bg-red-700 transition duration-300 transform hover:scale-[1.01]">
-                                    Buka Generator AI
+                                    Open Generator AI
                                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                                 </span>
                             </div>
@@ -344,4 +343,3 @@
     </script>
 </body>
 </html>
-
