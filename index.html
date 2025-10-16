@@ -23,6 +23,97 @@
       background: linear-gradient(90deg, #7f3cff 60%, #ff3c7f 100%);
       color: #fff;
     }
+
+    /* Carousel wrapper */
+    .pop-wrap {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .pop-track,
+    .pop-track-reverse {
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+      will-change: transform;
+      /* animation removed — using JS-driven smooth scroll for natural looping */
+    }
+
+    /* slide size (flex-basis) and square ratio */
+    .pop-item {
+      flex: 0 0 220px;
+      border-radius: 14px;
+      background: linear-gradient(135deg,#2e1a47,#1a0e2e);
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .pop-item img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display: block;
+    }
+    .pop-caption {
+      padding: .5rem .75rem;
+      color: rgba(255,255,255,0.9);
+      font-weight: 600;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(0,0,0,0.12), transparent);
+    }
+
+    /* desktop sizes */
+    @media (min-width: 768px) { .pop-item { flex: 0 0 260px; } }
+    @media (min-width: 1024px) { .pop-item { flex: 0 0 300px; } }
+
+    /* pause on hover per wrapper (JS also pauses) */
+    .pop-wrap:hover,
+    .pop-wrap-reverse:hover { cursor: grab; }
+
+    /* blur/fade edges */
+    .pop-edge {
+      pointer-events: none;
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 4.5rem;
+      z-index: 10;
+      backdrop-filter: blur(6px);
+    }
+    .pop-edge.left { left: 0; background: linear-gradient(90deg,#0a0a1a 0%, transparent 60%); }
+    .pop-edge.right { right: 0; background: linear-gradient(270deg,#0a0a1a 0%, transparent 60%); }
+
+    /* enable native smooth scroll for anchors */
+    html { scroll-behavior: smooth; }
+
+    /* back-to-top button */
+    #backToTop {
+      position: fixed;
+      right: 20px;
+      bottom: 24px;
+      z-index: 60;
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      background: linear-gradient(90deg,#7f3cff,#ff3c7f);
+      color: #fff;
+      box-shadow: 0 10px 30px rgba(47,14,79,0.36);
+      border: none;
+      cursor: pointer;
+      transform: translateY(8px);
+      opacity: 0;
+      transition: opacity .28s ease, transform .28s ease, box-shadow .2s;
+    }
+    #backToTop.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #backToTop:focus { outline: 2px solid rgba(255,255,255,0.12); outline-offset: 3px; }
   </style>
 </head>
 <body class="text-white">
@@ -33,9 +124,13 @@
       <img src="./assets/logo-UBIG.png" alt="UBIG Logo" class="w-10 h-10 rounded-lg">
       <span class="font-extrabold text-2xl text-white tracking-tight">UBIG.<span class="text-[#7f3cff]">ai</span></span>
     </div>
-    <div class="flex items-center gap-4">
-      <input type="text" placeholder="Search" class="hidden md:block px-4 py-2 rounded-full bg-[#1a1333] text-white/80 border-none outline-none w-40 text-sm" />
-    </div>
+
+    <!-- ADDED NAV LINKS -->
+    <ul class="hidden md:flex items-center gap-8 text-white/80 font-semibold text-lg">
+      <li><a href="#features" class="hover:text-white transition">Key Features</a></li>
+      <li><a href="#ai-generator" class="hover:text-white transition">Generators</a></li>
+      <li><a href="#explore" class="hover:text-white transition">Explore</a></li>
+    </ul>
   </nav>
 
   <!-- HERO SECTION -->
@@ -50,22 +145,9 @@
       </p>
       <div class="flex flex-wrap gap-4 mb-8">
         <a href="https://g.co/gemini/share/8e6fb957a810" class="px-8 py-3 rounded-full main-gradient text-white font-bold text-lg shadow-lg hover:scale-105 transition">Try Now</a>
-        <a href="#generators" target="_blank" class="px-8 py-3 rounded-full bg-white text-[#7f3cff] font-bold text-lg shadow-lg hover:bg-[#f3e8ff] transition">Choose Generator</a>
-      </div>
-      <div class="flex gap-8 mb-6">
-        <div class="flex flex-col items-center">
-          <span class="text-2xl font-bold text-white">Unlimited</span>
-          <span class="text-white/70 text-xs">Free Images</span>
-        </div>
-        <div class="flex flex-col items-center">
-          <span class="text-2xl font-bold text-white">No Login</span>
-          <span class="text-white/70 text-xs">Required</span>
-        </div>
-        <div class="flex flex-col items-center">
-          <span class="text-2xl font-bold text-white">Instant</span>
-          <span class="text-white/70 text-xs">Results</span>
-        </div>
-      </div>   
+        <!-- changed: remove target="_blank" so anchor scrolls in-page, add id for JS -->
+        <a href="#ai-generator" id="choose-generator" class="px-8 py-3 rounded-full bg-white text-[#7f3cff] font-bold text-lg shadow-lg hover:bg-[#f3e8ff] transition">Choose Generator</a>
+      </div> 
     </div>
     <div class="flex-1 flex justify-center mt-12 md:mt-0">
       <div class="w-[340px] h-[420px] rounded-3xl bg-none  shadow-2xl flex items-center justify-center overflow-hidden">
@@ -74,88 +156,197 @@
     </div>
   </section>
 
- 
+  <!-- EXPLORE THIS CREATIVITY (two opposite carousels) -->
+  <section id="explore" class="max-w-7xl mx-auto px-8 py-12">
+    <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6 text-center tracking-tight">Explore Your Creativity</h2>
 
-  <!-- POPULAR THIS WEEK -->
-  <section class="max-w-7xl mx-auto px-8 py-12">
-    <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-10 text-center tracking-tight">Popular This Week</h2>
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-8">
-      <div class="card-gradient rounded-2xl p-4 shadow-lg flex flex-col items-center">
-        <div class="w-full h-48 rounded-xl bg-gray-800 mb-4 overflow-hidden">
-          <img src="/assets/mecha1.png" alt="Example 1" class="object-cover w-full h-full" />
-        </div>
-        <div class="w-full">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-white">Mecha Hero</span>
-            <span class="text-[#7f3cff] font-semibold">3.9K</span>
-          </div>
-          <span class="block text-xs text-white/60 mb-1">Prompt: <span class="font-mono">mecha, red armor, laser sword</span></span>
-        </div>
-      </div>
-      <div class="card-gradient rounded-2xl p-4 shadow-lg flex flex-col items-center">
-        <div class="w-full h-48 rounded-xl bg-gray-800 mb-4 overflow-hidden">
-          <img src="/assets/motor2.png" alt="Example 2" class="object-cover w-full h-full" />
-        </div>
-        <div class="w-full">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-white">Cyberpunk Rider</span>
-            <span class="text-[#7f3cff] font-semibold">2.4K</span>
-          </div>
-          <span class="block text-xs text-white/60 mb-1">Prompt: <span class="font-mono">cyberpunk, neon, motorcycle</span></span>
-        </div>
-      </div>
-      <div class="card-gradient rounded-2xl p-4 shadow-lg flex flex-col items-center">
-        <div class="w-full h-48 rounded-xl bg-gray-800 mb-4 overflow-hidden">
-          <img src="/assets/wizard3.png" alt="Example 3" class="object-cover w-full h-full" />
-        </div>
-        <div class="w-full">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-white">Chibi Wizard</span>
-            <span class="text-[#7f3cff] font-semibold">3.5K</span>
-          </div>
-          <span class="block text-xs text-white/60 mb-1">Prompt: <span class="font-mono">chibi, wizard, pastel</span></span>
-        </div>
-      </div>
-      <div class="card-gradient rounded-2xl p-4 shadow-lg flex flex-col items-center">
-        <div class="w-full h-48 rounded-xl bg-gray-800 mb-4 overflow-hidden">
-          <img src="/assets/anime4.png" alt="Example 4" class="object-cover w-full h-full" />
-        </div>
-        <div class="w-full">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-white">Violet Wifey</span>
-            <span class="text-[#7f3cff] font-semibold">2.1K</span>
-          </div>
-          <span class="block text-xs text-white/60 mb-1">Prompt: <span class="font-mono">anime, violet, desk</span></span>
-        </div>
-      </div>
-      <div class="card-gradient rounded-2xl p-4 shadow-lg flex flex-col items-center">
-        <div class="w-full h-48 rounded-xl bg-gray-800 mb-4 overflow-hidden">
-          <img src="/assets/digital5.png" alt="Example 5" class="object-cover w-full h-full" />
-        </div>
-        <div class="w-full">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-white">Digital Decade</span>
-            <span class="text-[#7f3cff] font-semibold">5.0K</span>
-          </div>
-          <span class="block text-xs text-white/60 mb-1">Prompt: <span class="font-mono">digital, neon, portrait</span></span>
-        </div>
+    <!-- First carousel: leftward -->
+    <div class="pop-wrap mt-6 mb-6" aria-hidden="false">
+      <div class="pop-edge left"></div>
+      <div class="pop-edge right"></div>
+
+      <div class="pop-track" role="list">
+        <!-- unique 10 items (first set) -->
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop1.png" alt="Style 1">
+          <div class="pop-caption">Style 1</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop2.png" alt="Style 2">
+          <div class="pop-caption">Style 2</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop3.png" alt="Style 3">
+          <div class="pop-caption">Style 3</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop4.png" alt="Style 4">
+          <div class="pop-caption">Style 4</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop5.png" alt="Style 5">
+          <div class="pop-caption">Style 5</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop6.png" alt="Style 6">
+          <div class="pop-caption">Style 6</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop7.png" alt="Style 7">
+          <div class="pop-caption">Style 7</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop8.png" alt="Style 8">
+          <div class="pop-caption">Style 8</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop9.png" alt="Style 9">
+          <div class="pop-caption">Style 9</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop10.png" alt="Style 10">
+          <div class="pop-caption">Style 10</div>
+        </a>
+
+        <!-- duplicate set for seamless loop -->
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop1.png" alt="Style 1 duplicate">
+          <div class="pop-caption">Style 1</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop2.png" alt="Style 2 duplicate">
+          <div class="pop-caption">Style 2</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop3.png" alt="Style 3 duplicate">
+          <div class="pop-caption">Style 3</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop4.png" alt="Style 4 duplicate">
+          <div class="pop-caption">Style 4</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop5.png" alt="Style 5 duplicate">
+          <div class="pop-caption">Style 5</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop6.png" alt="Style 6 duplicate">
+          <div class="pop-caption">Style 6</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop7.png" alt="Style 7 duplicate">
+          <div class="pop-caption">Style 7</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop8.png" alt="Style 8 duplicate">
+          <div class="pop-caption">Style 8</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop9.png" alt="Style 9 duplicate">
+          <div class="pop-caption">Style 9</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop10.png" alt="Style 10 duplicate">
+          <div class="pop-caption">Style 10</div>
+        </a>
       </div>
     </div>
-  </section>
 
-  <!-- EXPLORE ARTWORKS / CATEGORIES -->
-  <section id="explore" class="max-w-7xl mx-auto px-8 py-12">
-    <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8 text-center tracking-tight">Explore Artworks</h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-      <div class="rounded-2xl bg-[#7f3cff]/20 p-6 text-center text-white font-semibold shadow-lg">Realistic</div>
-      <div class="rounded-2xl bg-[#ff3c7f]/20 p-6 text-center text-white font-semibold shadow-lg">3D Art</div>
-      <div class="rounded-2xl bg-[#ff3c7f]/20 p-6 text-center text-white font-semibold shadow-lg">Crystals</div>
-      <div class="rounded-2xl bg-[#7f3cff]/20 p-6 text-center text-white font-semibold shadow-lg">Anime</div>
+    <!-- Second carousel: rightward (reverse direction) -->
+    <div class="pop-wrap pop-wrap-reverse mt-8">
+      <div class="pop-edge left"></div>
+      <div class="pop-edge right"></div>
+
+      <div class="pop-track-reverse" aria-hidden="false">
+        <!-- same 10 items, duplicated, caption under each -->
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop11.png" alt="Style 1">
+          <div class="pop-caption">Style 1</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop12.png" alt="Style 2">
+          <div class="pop-caption">Style 2</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop13.png" alt="Style 3">
+          <div class="pop-caption">Style 3</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop14.png" alt="Style 4">
+          <div class="pop-caption">Style 4</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop15.png" alt="Style 5">
+          <div class="pop-caption">Style 5</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop16.png" alt="Style 6">
+          <div class="pop-caption">Style 6</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop17.png" alt="Style 7">
+          <div class="pop-caption">Style 7</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop18.png" alt="Style 8">
+          <div class="pop-caption">Style 8</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop19.png" alt="Style 9">
+          <div class="pop-caption">Style 9</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop20.png" alt="Style 10">
+          <div class="pop-caption">Style 10</div>
+        </a>
+
+        <!-- duplicate set for loop -->
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop11.png" alt="Style 1 duplicate">
+          <div class="pop-caption">Style 1</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop12.png" alt="Style 2 duplicate">
+          <div class="pop-caption">Style 2</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop13.png" alt="Style 3 duplicate">
+          <div class="pop-caption">Style 3</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop14.png" alt="Style 4 duplicate">
+          <div class="pop-caption">Style 4</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop15.png" alt="Style 5 duplicate">
+          <div class="pop-caption">Style 5</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop16.png" alt="Style 6 duplicate">
+          <div class="pop-caption">Style 6</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop17.png" alt="Style 7 duplicate">
+          <div class="pop-caption">Style 7</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop18.png" alt="Style 8 duplicate">
+          <div class="pop-caption">Style 8</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop19.png" alt="Style 9 duplicate">
+          <div class="pop-caption">Style 9</div>
+        </a>
+        <a class="pop-item" href="#" role="listitem">
+          <img src="/assets/pop20.png" alt="Style 10 duplicate">
+          <div class="pop-caption">Style 10</div>
+        </a>
+      </div>
     </div>
   </section>
 
   <!-- AI GENERATOR CARDS (centered, blue-pink gradient style, NO 3D effect, icon not cut) -->
-  <section class="max-w-4xl mx-auto px-8 py-12 flex flex-col items-center">
+  <section id="ai-generator" class="max-w-4xl mx-auto px-8 py-12 flex flex-col items-center">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 w-full justify-center">
       <!-- Action Figure AI Generator Card -->
       <div
@@ -234,228 +425,83 @@
     </div>
   </section>
 
-  <!-- FITUR AI GENERATOR (Carousel, full width, blur edge, hover effect, responsive) -->
-  <section class="w-full px-0 py-12">
-    <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8 text-center tracking-tight">Features</h2>
-    <div 
-      id="feature-carousel" 
-      class="relative overflow-hidden w-full max-w-full mx-auto"
-      onmouseenter="pauseCarousel()" 
-      onmouseleave="resumeCarousel()"
-      style="height: 200px;"
-    >
-      <div id="carousel-track" class="absolute left-0 top-0 h-full flex items-center transition-transform duration-700 will-change-transform">
-        <!-- Slides injected by JS -->
+  <!-- FITUR AI GENERATOR (REPLACED: Key Features grid) -->
+  <section id="features" class="max-w-7xl mx-auto px-8 py-12">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8 text-center tracking-tight">Key Features</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Card 1 -->
+      <div class="flex items-start gap-4 rounded-2xl p-6 bg-[#0f0b16]/60 shadow-lg transform transition hover:-translate-y-3 hover:shadow-2xl">
+        <div class="w-2 rounded-l-2xl" style="background:linear-gradient(180deg,#7f3cff,#ff3c7f)"></div>
+        <div class="flex-1 pl-4">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center bg-[#151123] text-3xl mb-3 shadow-[0_8px_24px_#7f3cff20]">✨</div>
+          <h3 class="text-lg font-bold text-white mb-1">16 Images at Once</h3>
+          <p class="text-white/70 text-sm">Generate 16 action-figure images in various styles and poses with a single prompt — instantly and free.</p>
+        </div>
       </div>
-      <!-- Blur overlays for fade effect -->
-      <div class="pointer-events-none absolute left-0 top-0 h-full w-10 md:w-10 bg-gradient-to-r from-[#18122b] via-[#18122b]/80 to-transparent z-10" style="backdrop-filter: blur(8px);"></div>
-      <div class="pointer-events-none absolute right-0 top-0 h-full w-10 md:w-10 bg-gradient-to-l from-[#18122b] via-[#18122b]/80 to-transparent z-10" style="backdrop-filter: blur(8px);"></div>
+
+      <!-- Card 2 -->
+      <div class="flex items-start gap-4 rounded-2xl p-6 bg-[#0f0b16]/60 shadow-lg transform transition hover:-translate-y-3 hover:shadow-2xl">
+        <div class="w-2 rounded-l-2xl" style="background:linear-gradient(180deg,#7f3cff,#ff3c7f)"></div>
+        <div class="flex-1 pl-4">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center bg-[#151123] text-3xl mb-3 shadow-[0_8px_24px_#7f3cff20]">💎</div>
+          <h3 class="text-lg font-bold text-white mb-1"> Crystal Images</h3>
+          <p class="text-white/70 text-sm">Produce crystal-style renders with varied shapes and vibrant colors using one prompt.</p>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="flex items-start gap-4 rounded-2xl p-6 bg-[#0f0b16]/60 shadow-lg transform transition hover:-translate-y-3 hover:shadow-2xl">
+        <div class="w-2 rounded-l-2xl" style="background:linear-gradient(180deg,#7f3cff,#ff3c7f)"></div>
+        <div class="flex-1 pl-4">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center bg-[#151123] text-3xl mb-3 shadow-[0_8px_24px_#7f3cff20]">🎛️</div>
+          <h3 class="text-lg font-bold text-white mb-1">Multiple Styles</h3>
+          <p class="text-white/70 text-sm">Choose from Crystal, Realistic, 3D, and Anime styles or upload your photo style to match any concept or collectible look.</p>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="flex items-start gap-4 rounded-2xl p-6 bg-[#0f0b16]/60 shadow-lg transform transition hover:-translate-y-3 hover:shadow-2xl">
+        <div class="w-2 rounded-l-2xl" style="background:linear-gradient(180deg,#7f3cff,#ff3c7f)"></div>
+        <div class="flex-1 pl-4">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center bg-[#151123] text-3xl mb-3 shadow-[0_8px_24px_#7f3cff20]">💾</div>
+          <h3 class="text-lg font-bold text-white mb-1">Auto Save (Session)</h3>
+          <p class="text-white/70 text-sm">All generated images are saved in your browser until the page is reloaded — keep results while you work.</p>
+        </div>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="flex items-start gap-4 rounded-2xl p-6 bg-[#0f0b16]/60 shadow-lg transform transition hover:-translate-y-3 hover:shadow-2xl">
+        <div class="w-2 rounded-l-2xl" style="background:linear-gradient(180deg,#7f3cff,#ff3c7f)"></div>
+        <div class="flex-1 pl-4">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center bg-[#151123] text-3xl mb-3 shadow-[0_8px_24px_#7f3cff20]">⬇️</div>
+          <h3 class="text-lg font-bold text-white mb-1">Download All</h3>
+          <p class="text-white/70 text-sm">Export every generated image at once for backup, printing, or sharing.</p>
+        </div>
+      </div>
+
+      <!-- Card 6 -->
+      <div class="flex items-start gap-4 rounded-2xl p-6 bg-[#0f0b16]/60 shadow-lg transform transition hover:-translate-y-3 hover:shadow-2xl">
+        <div class="w-2 rounded-l-2xl" style="background:linear-gradient(180deg,#7f3cff,#ff3c7f)"></div>
+        <div class="flex-1 pl-4">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center bg-[#151123] text-3xl mb-3 shadow-[0_8px_24px_#7f3cff20]">🤖</div>
+          <h3 class="text-lg font-bold text-white mb-1">Prompt Recommendations</h3>
+          <p class="text-white/70 text-sm">AI-suggested prompts to help you create action figures quickly — use as-is or customize for unique results.</p>
+        </div>
+      </div>
     </div>
   </section>
-
-  <script>
-    // Carousel data
-    const features = [
-      {
-        icon: "✨",
-        title: "Crystals Style",
-        desc: "Shiny, vibrant, and futuristic look for your figures."
-      },
-      {
-        icon: "🧑‍🎤",
-        title: "Realistic Style",
-        desc: "Lifelike action figures with stunning details."
-      },
-      {
-        icon: "🧊",
-        title: "3D Style",
-        desc: "Dynamic, collectible 3D renders for every prompt."
-      },
-      {
-        icon: "🎨",
-        title: "Anime Style",
-        desc: "Cute and colorful anime-inspired figures."
-      },
-      {
-        icon: "💾",
-        title: "Auto Save",
-        desc: "All generated images are saved in your browser until reload."
-      },
-      {
-        icon: "⬇️",
-        title: "Download All",
-        desc: "Download all your creations instantly with one click."
-      },
-      {
-        icon: "🤖",
-        title: "Prompt Recommendations",
-        desc: "Get AI-powered prompt ideas for unique figures."
-      },
-      {
-        icon: "📥",
-        title: "Direct Download",
-        desc: "Download every generated image easily and instantly."
-      }
-    ];
-
-    // Responsive slide width
-    function getSlideWidth() {
-      if (window.innerWidth >= 1024) return 340;
-      if (window.innerWidth >= 640) return 300;
-      return 260;
-    }
-
-    // Carousel logic
-    const track = document.getElementById('carousel-track');
-    let carouselIndex = 0;
-    let carouselInterval;
-    let isPaused = false;
-    let slideWidth = getSlideWidth();
-
-    // Render slides (duplicate for infinite effect)
-    function renderCarouselSlides() {
-      slideWidth = getSlideWidth();
-      let slides = '';
-      for (let i = 0; i < features.length * 2; i++) {
-        const f = features[i % features.length];
-        slides += `
-          <div class="feature-slide flex flex-col items-center justify-center mx-3 sm:mx-6 py-6 px-4 min-w-[${slideWidth}px] max-w-xs bg-white/5 rounded-xl shadow transition-all duration-300 group cursor-pointer relative"
-            onmouseenter="this.classList.add('feature-slide-hover')" 
-            onmouseleave="this.classList.remove('feature-slide-hover')"
-            style="backdrop-filter: blur(0px);">
-            <div class="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition duration-300 pointer-events-none"
-              style="background: radial-gradient(circle at 50% 60%, #7f3cff55 0%, #ff3c7f33 70%, transparent 100%); filter: blur(18px);">
-            </div>
-            <div class="text-4xl mb-2 z-10">${f.icon}</div>
-            <div class="font-bold text-lg text-white mb-1 z-10">${f.title}</div>
-            <div class="text-white/80 text-base text-center z-10">${f.desc}</div>
-          </div>
-        `;
-      }
-      track.innerHTML = slides;
-      // Add hover effect for scaling and shadow
-      document.querySelectorAll('.feature-slide').forEach(el => {
-        el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.07)';
-          el.style.zIndex = 20;
-          el.style.boxShadow = '0 8px 32px 0 #7f3cff55, 0 2px 8px 0 #ff3c7f55';
-        });
-        el.addEventListener('mouseleave', () => {
-          el.style.transform = '';
-          el.style.zIndex = '';
-          el.style.boxShadow = '';
-        });
-      });
-    }
-
-    // Move carousel
-    function moveCarousel() {
-      if (isPaused) return;
-      carouselIndex++;
-      slideWidth = getSlideWidth();
-      track.style.transform = `translateX(-${carouselIndex * (slideWidth + 10)}px)`;
-      // Reset to start for infinite loop
-      if (carouselIndex >= features.length) {
-        setTimeout(() => {
-          track.style.transition = 'none';
-          carouselIndex = 0;
-          track.style.transform = `translateX(0px)`;
-          void track.offsetWidth;
-          track.style.transition = 'transform 1s';
-        }, 700);
-      }
-    }
-
-    function startCarousel() {
-      carouselInterval = setInterval(moveCarousel, 2200);
-    }
-    function pauseCarousel() {
-      isPaused = true;
-      clearInterval(carouselInterval);
-    }
-    function resumeCarousel() {
-      isPaused = false;
-      startCarousel();
-    }
-
-    // Init
-    renderCarouselSlides();
-    track.style.transition = 'transform 0.7s';
-    startCarousel();
-
-    // Responsive: recalc on resize
-    window.addEventListener('resize', () => {
-      renderCarouselSlides();
-      track.style.transition = 'none';
-      track.style.transform = `translateX(-${carouselIndex * (getSlideWidth() + 24)}px)`;
-      void track.offsetWidth;
-      track.style.transition = 'transform 0.7s';
-    });
-  </script>
-
-  <!-- CTA BANNER -->
-  <section class="max-w-4xl mx-auto px-4 py-12">
-    <div class="rounded-3xl main-gradient p-10 text-center shadow-2xl">
-      <h3 class="text-2xl md:text-3xl font-extrabold text-white mb-4">Join Us to Create, Sell and Collect AI Figures!</h3>
-      <p class="text-white/90 mb-6">Be part of the creative community. All tools are free and ready for your imagination.</p>
-      <a href="#generators" class="inline-block px-8 py-3 rounded-full bg-white text-[#7f3cff] font-bold text-lg shadow-lg hover:bg-[#f3e8ff] transition">Join Community</a>
-    </div>
-  </section>
-
 
   <!-- FOOTER -->
   <footer class="mt-20 py-10 text-white/80 text-sm bg-transparent">
-    <div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row md:justify-between gap-8">
-      <div>
-        <span class="font-extrabold text-lg text-white">UBIG.<span class="text-[#7f3cff]">ai</span></span>
-        <span class="ml-2">The world's easiest AI generation portal for figures & visuals.</span>
-        <div class="flex gap-4 mt-4">
-          <a href="#" class="hover:text-white"><svg class="w-5 h-5 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M22.46 6c-.77.35-1.6.59-2.47.7a4.3 4.3 0 0 0 1.88-2.37 8.59 8.59 0 0 1-2.72 1.04A4.28 4.28 0 0 0 16.11 4c-2.37 0-4.29 1.92-4.29 4.29 0 .34.04.67.11.99C7.69 8.99 4.07 7.13 1.64 4.16c-.37.64-.58 1.38-.58 2.17 0 1.5.76 2.82 1.92 3.6a4.27 4.27 0 0 1-1.94-.54v.05c0 2.1 1.5 3.85 3.5 4.25-.36.1-.74.16-1.13.16-.28 0-.54-.03-.8-.08.54 1.7 2.1 2.94 3.95 2.97A8.6 8.6 0 0 1 2 19.54c-.28 0-.56-.02-.83-.05A12.13 12.13 0 0 0 8.29 21.5c7.55 0 11.68-6.26 11.68-11.68 0-.18 0-.36-.01-.54A8.18 8.18 0 0 0 24 4.59a8.36 8.36 0 0 1-2.54.7z"/></svg></a>
-          <a href="#" class="hover:text-white"><svg class="w-5 h-5 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.04c-5.5 0-9.96 4.46-9.96 9.96 0 4.41 3.6 8.07 8.24 8.93.6.11.82-.26.82-.58v-2.02c-3.34.73-4.04-1.61-4.04-1.61-.54-1.37-1.32-1.74-1.32-1.74-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.97 0-1.32.47-2.39 1.23-3.23-.12-.3-.53-1.52.12-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02.01 2.05.14 3 .4 2.3-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.23 0 4.64-2.8 5.67-5.47 5.97.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.36 20.07 24 16.41 24 12c0-5.5-4.46-9.96-9.96-9.96z"/></svg></a>
-          <a href="#" class="hover:text-white"><svg class="w-5 h-5 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M21.35 11.1c0-5.1-4.15-9.25-9.25-9.25S2.85 6 2.85 11.1c0 4.6 3.35 8.4 7.75 9.13v-6.46h-2.33v-2.67h2.33V9.41c0-2.3 1.37-3.57 3.47-3.57.99 0 2.03.18 2.03.18v2.23h-1.14c-1.13 0-1.48.7-1.48 1.42v1.7h2.5l-.4 2.67h-2.1v6.46c4.4-.73 7.75-4.53 7.75-9.13z"/></svg></a>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div>
-          <h4 class="font-bold mb-2">Explore</h4>
-          <ul class="space-y-1">
-            <li><a href="#" class="hover:text-white">Art</a></li>
-            <li><a href="#" class="hover:text-white">Photography</a></li>
-            <li><a href="#" class="hover:text-white">Music</a></li>
-            <li><a href="#" class="hover:text-white">Games</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="font-bold mb-2">My Account</h4>
-          <ul class="space-y-1">
-            <li><a href="#" class="hover:text-white">My Profile</a></li>
-            <li><a href="#" class="hover:text-white">My Collections</a></li>
-            <li><a href="#" class="hover:text-white">My Favorites</a></li>
-            <li><a href="#" class="hover:text-white">My Account Settings</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="font-bold mb-2">Resources</h4>
-          <ul class="space-y-1">
-            <li><a href="#" class="hover:text-white">Help Center</a></li>
-            <li><a href="#" class="hover:text-white">Partners</a></li>
-            <li><a href="#" class="hover:text-white">Suggestions</a></li>
-            <li><a href="#" class="hover:text-white">Newsletters</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="font-bold mb-2">Company</h4>
-          <ul class="space-y-1">
-            <li><a href="#" class="hover:text-white">About</a></li>
-            <li><a href="#" class="hover:text-white">Careers</a></li>
-            <li><a href="#" class="hover:text-white">Ranking</a></li>
-            <li><a href="#" class="hover:text-white">Activity</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
     <div class="mt-4 text-center text-xs text-white/40">&copy; 2024 UBIG.ai Portal. Created with passion.</div>
   </footer>
+
+  <!-- back to top button -->
+  <button id="backToTop" aria-label="Back to top" title="Back to top" type="button">
+    <!-- simple chevron up -->
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
 
   <script>
   // Smooth 3D tilt effect, full card gradient on hover (like index.html)
@@ -475,6 +521,169 @@
     card.style.transform = 'none';
     card.style.boxShadow = '';
   }
+
+  // Smooth scroll from "Choose Generator" to #ai-generator (prevents opening new tab)
+  (function(){
+    const chooseBtn = document.getElementById('choose-generator');
+    if (chooseBtn) {
+      chooseBtn.addEventListener('click', function(e){
+        // default anchor with hash will already do smooth scroll because of CSS
+        // prevent default in case the browser would jump or open new tab
+        e.preventDefault();
+        const target = document.querySelector('#ai-generator');
+        if (target) {
+          // Use scrollIntoView for smooth and natural behavior
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // slightly shift focus for a11y
+          target.setAttribute('tabindex', '-1');
+          target.focus({ preventScroll: true });
+          // remove tabindex after focus
+          setTimeout(()=> target.removeAttribute('tabindex'), 1000);
+        }
+      });
+    }
+
+    // Back-to-top button behavior
+    const backBtn = document.getElementById('backToTop');
+    const showAfter = 380; // px scrolled before showing
+    function checkScroll() {
+      if (window.scrollY > showAfter) {
+        backBtn.classList.add('visible');
+      } else {
+        backBtn.classList.remove('visible');
+      }
+    }
+    // show/hide on load/scroll/resize
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll);
+    document.addEventListener('DOMContentLoaded', checkScroll);
+
+    backBtn.addEventListener('click', function(){
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Optional: keyboard shortcut "Home" to scroll top (accessible)
+    document.addEventListener('keydown', function(e){
+      if ((e.key === 'Home' || (e.key === 'k' && (e.ctrlKey || e.metaKey))) ) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  })();
+  </script>
+  <script>
+    // remove old CSS animation usage and use requestAnimationFrame for smooth natural scroll
+    (function () {
+      const wrappers = Array.from(document.querySelectorAll('.pop-wrap, .pop-wrap-reverse'));
+
+      wrappers.forEach(wrapper => {
+        const isReverse = wrapper.classList.contains('pop-wrap-reverse');
+        const track = wrapper.querySelector('.pop-track') || wrapper.querySelector('.pop-track-reverse');
+        if (!track) return;
+
+        // If duplicate not present, duplicate children for seamless loop
+        // (current markup already has duplicates; this check prevents accidental double-dup)
+        const childCount = track.children.length;
+        const halfCount = childCount / 2;
+        if (childCount > 0 && halfCount === Math.floor(halfCount)) {
+          // nothing — expected duplicated set present
+        } else {
+          // duplicate once
+          const clone = track.innerHTML;
+          track.innerHTML += clone;
+        }
+
+        let trackHalfWidth = track.scrollWidth / 2;
+        // calculate slide basis (gap included)
+        const firstItem = track.querySelector('.pop-item');
+        const gap = parseFloat(getComputedStyle(track).gap) || 20;
+        const slideWidth = firstItem ? firstItem.getBoundingClientRect().width + gap : 260;
+
+        // speed: make half-loop take ~10 seconds (natural)
+        const loopSeconds = 16;
+        let speed = trackHalfWidth / loopSeconds; // px per second
+
+        // state
+        let progress = 0; // 0 .. trackHalfWidth
+        let lastTime = performance.now();
+        let paused = false;
+
+        // pause on hover/touch
+        wrapper.addEventListener('mouseenter', () => paused = true);
+        wrapper.addEventListener('mouseleave', () => paused = false);
+        wrapper.addEventListener('touchstart', () => paused = true, {passive:true});
+        wrapper.addEventListener('touchend', () => paused = false);
+
+        // handle resize (recompute widths)
+        const recompute = () => {
+          trackHalfWidth = track.scrollWidth / 2;
+          // recalc speed to keep loopSeconds consistent
+          speed = trackHalfWidth / loopSeconds;
+        };
+        window.addEventListener('resize', () => {
+          // small debounce
+          clearTimeout(wrapper._resizeTimeout);
+          wrapper._resizeTimeout = setTimeout(() => {
+            recompute();
+          }, 120);
+        });
+
+        function step(now) {
+          const dt = (now - lastTime) / 1000;
+          lastTime = now;
+          if (!paused) {
+            progress += dt * speed;
+            if (progress >= trackHalfWidth) progress -= trackHalfWidth;
+          }
+          // leftward: translateX(-progress)
+          // rightward(reverse): translateX(-(trackHalfWidth - progress))
+          const tx = isReverse ? -(trackHalfWidth - progress) : -progress;
+          track.style.transform = `translateX(${tx}px)`;
+          wrapper._raf = requestAnimationFrame(step);
+        }
+
+        // ensure high-DPI smoothness and start
+        lastTime = performance.now();
+        wrapper._raf && cancelAnimationFrame(wrapper._raf);
+        wrapper._raf = requestAnimationFrame(step);
+      });
+    })();
+
+    // Keep existing smooth scroll / back-to-top logic intact
+    (function(){
+      const chooseBtn = document.getElementById('choose-generator');
+      if (chooseBtn) {
+        chooseBtn.addEventListener('click', function(e){
+          e.preventDefault();
+          const target = document.querySelector('#ai-generator');
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            target.setAttribute('tabindex', '-1');
+            target.focus({ preventScroll: true });
+            setTimeout(()=> target.removeAttribute('tabindex'), 1000);
+          }
+        });
+      }
+
+      const backBtn = document.getElementById('backToTop');
+      const showAfter = 380;
+      function checkScroll() {
+        if (window.scrollY > showAfter) backBtn.classList.add('visible');
+        else backBtn.classList.remove('visible');
+      }
+      window.addEventListener('scroll', checkScroll, { passive: true });
+      window.addEventListener('resize', checkScroll);
+      document.addEventListener('DOMContentLoaded', checkScroll);
+
+      backBtn.addEventListener('click', function(){
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      document.addEventListener('keydown', function(e){
+        if ((e.key === 'Home' || (e.key === 'k' && (e.ctrlKey || e.metaKey))) ) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    })();
   </script>
 </body>
 </html>
